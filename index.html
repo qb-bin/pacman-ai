@@ -26,12 +26,23 @@
             color: white;
             font-size: 24px;
         }
+        #gameOver {
+            display: none;
+            color: white;
+            font-size: 36px;
+            position: absolute;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div id="score">Score: 0</div>
     <div id="timer">Time: 60</div>
+    <div id="gameOver">
+        <p>Game Over!</p>
+        <p>Your score: <span id="finalScore"></span></p>
+        <button onclick="restartGame()">Restart</button>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -44,12 +55,17 @@
         let pellets = [];
         let score = 0;
         let timeLeft = 60; // Time limit in seconds
+        let gameStarted = false;
 
         // Initialize pellets
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                if (r !== pacman.y || c !== pacman.x) {
-                    pellets.push({ x: c, y: r });
+        function initPellets(numPellets) {
+            pellets = [];
+            while (pellets.length < numPellets) {
+                const x = Math.floor(Math.random() * cols);
+                const y = Math.floor(Math.random() * rows);
+                // Ensure pellet doesn't spawn on Pac-Man
+                if (!(x === pacman.x && y === pacman.y) && !pellets.some(pellet => pellet.x === x && pellet.y === y)) {
+                    pellets.push({ x, y });
                 }
             }
         }
@@ -57,8 +73,6 @@
         // Draw the game
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw pellets
             ctx.fillStyle = 'yellow';
             pellets.forEach(pellet => {
                 ctx.beginPath();
@@ -67,7 +81,6 @@
             });
 
             // Draw Pac-Man
-            ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.arc(pacman.x * tileSize + tileSize / 2, pacman.y * tileSize + tileSize / 2, tileSize / 2, 0.2 * Math.PI, 1.8 * Math.PI);
             ctx.lineTo(pacman.x * tileSize + tileSize / 2, pacman.y * tileSize + tileSize / 2);
@@ -81,21 +94,12 @@
         // Move Pac-Man
         function movePacman() {
             switch (pacman.direction) {
-                case 'UP':
-                    if (pacman.y > 0) pacman.y--;
-                    break;
-                case 'DOWN':
-                    if (pacman.y < rows - 1) pacman.y++;
-                    break;
-                case 'LEFT':
-                    if (pacman.x > 0) pacman.x--;
-                    break;
-                case 'RIGHT':
-                    if (pacman.x < cols - 1) pacman.x++;
-                    break;
+                case 'UP': if (pacman.y > 0) pacman.y--; break;
+                case 'DOWN': if (pacman.y < rows - 1) pacman.y++; break;
+                case 'LEFT': if (pacman.x > 0) pacman.x--; break;
+                case 'RIGHT': if (pacman.x < cols - 1) pacman.x++; break;
             }
 
-            // Check for pellets
             pellets = pellets.filter(pellet => {
                 if (pellet.x === pacman.x && pellet.y === pacman.y) {
                     score++;
@@ -107,19 +111,17 @@
 
         // Control Pac-Man
         document.addEventListener('keydown', event => {
+            if (!gameStarted && (event.key.startsWith('Arrow'))) {
+                gameStarted = true; // Start the game
+                startTimer();
+                gameLoop();
+            }
+
             switch (event.key) {
-                case 'ArrowUp':
-                    pacman.direction = 'UP';
-                    break;
-                case 'ArrowDown':
-                    pacman.direction = 'DOWN';
-                    break;
-                case 'ArrowLeft':
-                    pacman.direction = 'LEFT';
-                    break;
-                case 'ArrowRight':
-                    pacman.direction = 'RIGHT';
-                    break;
+                case 'ArrowUp': pacman.direction = 'UP'; break;
+                case 'ArrowDown': pacman.direction = 'DOWN'; break;
+                case 'ArrowLeft': pacman.direction = 'LEFT'; break;
+                case 'ArrowRight': pacman.direction = 'RIGHT'; break;
             }
         });
 
@@ -130,7 +132,8 @@
                 draw();
                 requestAnimationFrame(gameLoop);
             } else {
-                alert(`Time's up! Your score is: ${score}`);
+                document.getElementById('finalScore').innerText = score;
+                document.getElementById('gameOver').style.display = 'block';
             }
         }
 
@@ -145,9 +148,20 @@
             }, 1000);
         }
 
-        // Start the game
-        startTimer();
-        gameLoop();
+        // Restart the game
+        function restartGame() {
+            pacman = { x: 1, y: 1, direction: 'RIGHT' };
+            score = 0;
+            timeLeft = 60;
+            gameStarted = false;
+            document.getElementById('gameOver').style.display = 'none';
+            initPellets(20); // Increase number of pellets
+            draw();
+        }
+
+        // Initialize pellets for the first time
+        initPellets(20); // Set initial number of pellets
+        draw();
     </script>
 </body>
 </html>
