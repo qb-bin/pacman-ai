@@ -41,7 +41,6 @@
     <div id="gameOver">
         <p>Game Over!</p>
         <p>Your score: <span id="finalScore"></span></p>
-        <button onclick="restartGame()">Restart</button>
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -146,17 +145,6 @@
                     clearInterval(timerInterval);
                 }
             }, 1000);
-        }
-
-        // Restart the game
-        function restartGame() {
-            pacman = { x: 1, y: 1, direction: 'RIGHT' };
-            score = 0;
-            timeLeft = 60;
-            gameStarted = false;
-            document.getElementById('gameOver').style.display = 'none';
-            initPellets(40); // Increased number of pellets to 40
-            draw();
         }
 
         // Initialize pellets for the first time
