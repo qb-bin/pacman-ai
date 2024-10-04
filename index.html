@@ -26,7 +26,7 @@
             color: white;
             font-size: 24px;
         }
-        #gameOver {
+        #gameOver, #completion {
             display: none;
             color: white;
             font-size: 36px;
@@ -41,6 +41,10 @@
     <div id="gameOver">
         <p>Game Over!</p>
         <p>Your score: <span id="finalScore"></span></p>
+    </div>
+    <div id="completion">
+        <p>Completed!</p>
+        <p>Your score: <span id="completionScore"></span></p>
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -106,6 +110,13 @@
                 }
                 return true;
             });
+
+            // Check for completion
+            if (pellets.length === 0) {
+                document.getElementById('completionScore').innerText = score;
+                document.getElementById('completion').style.display = 'block';
+                cancelAnimationFrame(requestId);
+            }
         }
 
         // Control Pac-Man
@@ -125,14 +136,16 @@
         });
 
         // Game loop
+        let requestId;
         function gameLoop() {
             if (timeLeft > 0) {
                 movePacman();
                 draw();
-                requestAnimationFrame(gameLoop);
+                requestId = requestAnimationFrame(gameLoop);
             } else {
                 document.getElementById('finalScore').innerText = score;
                 document.getElementById('gameOver').style.display = 'block';
+                cancelAnimationFrame(requestId);
             }
         }
 
